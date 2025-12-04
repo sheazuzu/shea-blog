@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zhenyu Xie | 个人空间</title>
+    <style>
+        /* --- 全局设置 --- */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap');
+
+        :root {
+            --bg-color: #0a0a0a;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --text-main: #ffffff;
+            --text-sec: #a0a0a0;
+            --accent-1: #00f260; /* 绿色高亮 */
+            --accent-2: #0575e6; /* 蓝色高亮 */
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* --- 动态背景 Canvas --- */
+        #canvas-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
+        }
+
+        /* --- 导航栏 --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 50px;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--accent-1), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .nav-links a {
+            color: var(--text-sec);
+            text-decoration: none;
+            margin-left: 30px;
+            transition: 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-main);
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        /* --- Hero 区域 (个人介绍 + 头像) --- */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 10%;
+            gap: 50px; /* 文字和图片的间距 */
+        }
+
+        .hero-content {
+            flex: 1;
+            text-align: left;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            line-height: 1.1;
+        }
+
+        .hero span.highlight {
+            background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .typewriter {
+            font-size: 1.5rem;
+            color: var(--text-sec);
+            margin-bottom: 30px;
+            min-height: 1.5em;
+            font-weight: 300;
+        }
+
+        /* 头像区域样式 */
+        .hero-image-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .profile-img {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%; /* 圆形裁剪 */
+            object-fit: cover;  /* 保证图片不变形填充 */
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            /* 霓虹发光效果 */
+            box-shadow: 0 0 30px rgba(5, 117, 230, 0.3),
+            0 0 60px rgba(0, 242, 96, 0.1);
+            /* 悬浮动画 */
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* 按钮样式 */
+        .btn-glow {
+            display: inline-block;
+            padding: 12px 35px;
+            background: transparent;
+            border: 2px solid var(--accent-2);
+            color: white;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.4s;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+        }
+
+        .btn-glow::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(5, 117, 230, 0.4), transparent);
+            transition: 0.5s;
+            z-index: -1;
+        }
+
+        .btn-glow:hover::before {
+            left: 100%;
+        }
+
+        .btn-glow:hover {
+            box-shadow: 0 0 20px var(--accent-2);
+            border-color: var(--accent-1);
+        }
+
+        /* --- 新增按钮组样式 --- */
+        .cta-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn-secondary {
+            border-color: var(--accent-1);
+        }
+        .btn-secondary::before {
+            background: linear-gradient(90deg, transparent, rgba(0, 242, 96, 0.4), transparent);
+        }
+        .btn-secondary:hover {
+            box-shadow: 0 0 20px var(--accent-1);
+            border-color: #fff;
+        }
+
+        .social-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.2);
+            transition: 0.3s;
+            background: rgba(255,255,255,0.05);
+            color: white;
+            text-decoration: none;
+        }
+        .social-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+        .social-icon:hover {
+            border-color: white;
+            background: white;
+            color: #0a0a0a;
+            box-shadow: 0 0 20px rgba(255,255,255,0.5);
+            transform: translateY(-3px);
+        }
+
+        /* --- 博客内容区域 --- */
+        .content-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 20px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            margin-bottom: 50px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            width: 50%;
+            height: 4px;
+            bottom: -10px;
+            left: 0;
+            background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+            border-radius: 2px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 25px;
+            transition: 0.4s transform, 0.4s box-shadow;
+            backdrop-filter: blur(5px);
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .card:hover .card-date { color: var(--accent-1); }
+        .card-date { font-size: 0.8rem; color: var(--text-sec); margin-bottom: 10px; display: block; transition: 0.3s; }
+        .card h3 { font-size: 1.4rem; margin-bottom: 15px; }
+        .card p { font-size: 0.95rem; color: var(--text-sec); line-height: 1.6; margin-bottom: 20px; }
+        .read-more { color: var(--accent-2); text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+
+        /* --- 底部 --- */
+        footer {
+            text-align: center;
+            padding: 50px 0;
+            border-top: 1px solid var(--glass-border);
+            color: var(--text-sec);
+            font-size: 0.9rem;
+        }
+
+        /* --- 联系表单模态框样式 --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            background: rgba(10, 10, 10, 0.95);
+            margin: 5% auto;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            box-shadow: 0 0 50px rgba(5, 117, 230, 0.3);
+            backdrop-filter: blur(15px);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: var(--text-sec);
+            transition: 0.3s;
+        }
+
+        .close-btn:hover {
+            color: var(--text-main);
+            transform: scale(1.1);
+        }
+
+        .modal h2 {
+            margin-bottom: 30px;
+            text-align: center;
+            background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-2);
+            box-shadow: 0 0 10px rgba(5, 117, 230, 0.3);
+        }
+
+        #contact-form .btn-glow {
+            width: 100%;
+            margin-top: 10px;
+        }
+        @media (max-width: 900px) {
+            .hero {
+                flex-direction: column-reverse; /* 手机上图片在上面，文字在下面 */
+                text-align: center;
+                padding-top: 100px;
+            }
+            .hero-content {
+                text-align: center;
+            }
+            .cta-group {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .hero h1 { font-size: 2.5rem; }
+            .profile-img {
+                width: 200px;
+                height: 200px;
+                margin-bottom: 20px;
+            }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 动态背景 -->
+<canvas id="canvas-bg"></canvas>
+
+<!-- 导航栏 -->
+<nav>
+    <div class="logo">ZHENYUXIE.COM</div>
+    <div class="nav-links">
+        <a href="#" id="contact-btn">Contact Me</a>
+    </div>
+</nav>
+
+<!-- 首屏 Hero -->
+<section class="hero" id="home">
+    <!-- 左侧文字 -->
+    <div class="hero-content">
+        <h1>Gude，I am <br><span class="highlight">Zhenyu Xie</span></h1>
+        <div class="typewriter" id="typewriter"></div>
+        <div class="cta-group">
+            <a href="https://www.linkedin.com/in/zhenyu-xie/" class="btn-glow">Find Me</a>
+            <a href="http://echoflow.zhenyuxie.com" class="btn-glow btn-secondary" target="_blank">EchoFlow</a>
+            <a href="https://github.com/sheazuzu" class="social-icon" target="_blank" aria-label="GitHub">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.419-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+            </a>
+        </div>
+    </div>
+
+    <!-- 右侧图片 (请确保你的图片名为 profile.jpg 并放在同一目录下) -->
+    <div class="hero-image-container">
+        <!--
+            注意：src="profile.jpg" 是你的照片路径。
+            如果你还没放照片，这里会显示一个代替的灰色圆圈。
+        -->
+        <img src="profile.jpg" alt="Zhenyu Xie" class="profile-img" onerror="this.src='https://via.placeholder.com/300/0575e6/ffffff?text=Zhenyu+Xie';">
+    </div>
+</section>
+
+<!-- 最新文章 -->
+<section class="content-section" id="blog">
+    <h2 class="section-title">News</h2>
+    <div class="grid">
+        <div class="card">
+            <span class="card-date">2025-11-01 &bull; Dev blog</span>
+            <h3>Tencent</h3>
+            <p>Integrating HashiCorp Vault with TKE and Keycloak SSO – Design and Best Practices ...</p>
+            <a href="#" class="read-more">Read All &rarr;</a>
+        </div>
+        <div class="card">
+            <span class="card-date">2024-10-20 &bull; Tech Sharing</span>
+            <h3>Terraform Introduction</h3>
+            <p>Terraform High-Level Introduction and Best-Practices in Tencent Cloud</p>
+            <a href="#" class="read-more">Read All &rarr;</a>
+        </div>
+        <div class="card">
+            <span class="card-date">2023-09-15 &bull; Blog</span>
+            <h3>Life</h3>
+            <p>I am mega football fan</p>
+            <a href="#" class="read-more">Read All &rarr;</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <p>&copy; 2024 Zhenyu Xie | Built for the Future</p>
+</footer>
+
+<!-- 联系表单模态框 -->
+<div id="contact-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2>Contact Me</h2>
+        <form id="contact-form">
+            <div class="form-group">
+                <label for="name">Your Name</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Your Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="subject">Subject</label>
+                <input type="text" id="subject" name="subject" required>
+            </div>
+            <div class="form-group">
+                <label for="message">Message</label>
+                <textarea id="message" name="message" rows="5" required></textarea>
+            </div>
+            <button type="submit" class="btn-glow">Send Message</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // --- 1. 打字机效果 ---
+    const textElement = document.getElementById('typewriter');
+    // 这里可以修改你的职业标签
+    const phrases = ['Cloud Solution Architect', 'Technical Account Manager', 'Tencent'];
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let typeSpeed = 100;
+
+    function type() {
+        const currentPhrase = phrases[phraseIndex];
+
+        if (isDeleting) {
+            textElement.textContent = currentPhrase.substring(0, charIndex - 1);
+            charIndex--;
+            typeSpeed = 50;
+        } else {
+            textElement.textContent = currentPhrase.substring(0, charIndex + 1);
+            charIndex++;
+            typeSpeed = 150;
+        }
+
+        if (!isDeleting && charIndex === currentPhrase.length) {
+            isDeleting = true;
+            typeSpeed = 2000;
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+            typeSpeed = 500;
+        }
+
+        setTimeout(type, typeSpeed);
+    }
+    document.addEventListener('DOMContentLoaded', type);
+
+    // --- 2. 粒子背景动画 ---
+    const canvas = document.getElementById('canvas-bg');
+    const ctx = canvas.getContext('2d');
+    let particlesArray;
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        init();
+    });
+
+    const mouse = { x: null, y: null, radius: 150 }
+    window.addEventListener('mousemove', (event) => {
+        mouse.x = event.x;
+        mouse.y = event.y;
+    });
+
+    class Particle {
+        constructor(x, y, directionX, directionY, size, color) {
+            this.x = x;
+            this.y = y;
+            this.directionX = directionX;
+            this.directionY = directionY;
+            this.size = size;
+            this.color = color;
+        }
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+        }
+        update() {
+            if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
+            if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
+
+            let dx = mouse.x - this.x;
+            let dy = mouse.y - this.y;
+            let distance = Math.sqrt(dx*dx + dy*dy);
+
+            if (distance < mouse.radius + this.size) {
+                if (mouse.x < this.x && this.x < canvas.width - this.size * 10) this.x += 10;
+                if (mouse.x > this.x && this.x > this.size * 10) this.x -= 10;
+                if (mouse.y < this.y && this.y < canvas.height - this.size * 10) this.y += 10;
+                if (mouse.y > this.y && this.y > this.size * 10) this.y -= 10;
+            }
+            this.x += this.directionX;
+            this.y += this.directionY;
+            this.draw();
+        }
+    }
+
+    function init() {
+        particlesArray = [];
+        let numberOfParticles = (canvas.height * canvas.width) / 9000;
+        for (let i = 0; i < numberOfParticles; i++) {
+            let size = (Math.random() * 2) + 1;
+            let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+            let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+            let directionX = (Math.random() * 1) - 0.5;
+            let directionY = (Math.random() * 1) - 0.5;
+            let color = '#0575e6';
+            particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
+        }
+    }
+
+    function connect() {
+        let opacityValue = 1;
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a; b < particlesArray.length; b++) {
+                let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
+                    + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                if (distance < (canvas.width/7) * (canvas.height/7)) {
+                    opacityValue = 1 - (distance/20000);
+                    ctx.strokeStyle = 'rgba(0, 242, 96,' + opacityValue + ')';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        ctx.clearRect(0, 0, innerWidth, innerHeight);
+        for (let i = 0; i < particlesArray.length; i++) {
+            particlesArray[i].update();
+        }
+        connect();
+    }
+
+    init();
+    animate();
+
+    // --- 3. 联系表单功能 ---
+    const contactBtn = document.getElementById('contact-btn');
+    const contactModal = document.getElementById('contact-modal');
+    const closeBtn = document.querySelector('.close-btn');
+    const contactForm = document.getElementById('contact-form');
+
+    // 打开模态框
+    contactBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        contactModal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    });
+
+    // 关闭模态框
+    closeBtn.addEventListener('click', function() {
+        contactModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    });
+
+    // 点击模态框外部关闭
+    contactModal.addEventListener('click', function(e) {
+        if (e.target === contactModal) {
+            contactModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    });
+
+    // 表单提交处理
+    contactForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(contactForm);
+        const name = formData.get('name');
+        const email = formData.get('email');
+        const subject = formData.get('subject');
+        const message = formData.get('message');
+        
+        // 发送邮件
+        const mailtoLink = `mailto:sheazuzu@hotmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`)}`;
+        
+        window.location.href = mailtoLink;
+        
+        // 显示成功消息
+        alert('Thank you! Your message has been opened in your email client. Please click send to deliver it.');
+        
+        // 关闭模态框并重置表单
+        contactModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        contactForm.reset();
+    });
+
+    // ESC键关闭模态框
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && contactModal.style.display === 'block') {
+            contactModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    });
+</script>
+</body>
+</html>
