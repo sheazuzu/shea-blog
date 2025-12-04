@@ -3,261 +3,533 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zhenyu Xie | Personal Space</title>
+    <title>Zhenyu Xie | FUTURE TECH</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap');
-
         :root {
-            --bg-color: #0a0a0a;
-            --text-main: #ffffff;
-            --text-sec: #a0a0a0;
-            --accent-1: #00f260;
-            --accent-2: #0575e6;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            --primary: #00f3ff;
+            --secondary: #bc13fe;
+            --bg: #050505;
+            --glass: rgba(255, 255, 255, 0.05);
         }
 
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            background-color: var(--bg);
+            color: white;
+            font-family: 'Share Tech Mono', monospace;
+            overflow: hidden;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px;
         }
 
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 50px;
+        /* Scanlines Overlay */
+        .scanlines {
             position: fixed;
-            width: 100%;
             top: 0;
-            z-index: 100;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent 0px,
+                transparent 2px,
+                rgba(0, 243, 255, 0.03) 3px,
+                rgba(0, 243, 255, 0.03) 4px
+            );
+            pointer-events: none;
+            z-index: 10;
         }
 
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(45deg, var(--accent-1), var(--accent-2));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        /* Canvas Background */
+        #background-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: -1;
         }
 
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0 10%;
-            gap: 50px;
+        /* Main Card Container with 3D Tilt */
+        .card-container {
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
         }
 
-        .hero-content {
-            flex: 1;
+        .profile-card {
+            background: rgba(10, 10, 16, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            padding: 3rem 4rem;
+            border-radius: 4px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.1), inset 0 0 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            clip-path: polygon(
+                10% 0, 100% 0, 100% 90%, 90% 100%, 0 100%, 0 10%
+            );
         }
 
-        .hero h1 {
-            font-size: 3.5rem;
-            margin-bottom: 15px;
-            line-height: 1.1;
+        /* Decorative Corners */
+        .profile-card::before, .profile-card::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--primary);
+            transition: all 0.3s ease;
         }
+        .profile-card::before { top: 0; left: 0; border-right: none; border-bottom: none; }
+        .profile-card::after { bottom: 0; right: 0; border-left: none; border-top: none; }
 
-        .hero span.highlight {
-            background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .typewriter {
-            font-size: 1.5rem;
-            color: var(--text-sec);
-            margin-bottom: 30px;
-            min-height: 1.5em;
-        }
-
-        .hero-image-container {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        /* Profile Image Area */
+        .avatar-wrapper {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 2rem auto;
         }
 
         .profile-img {
-            width: 300px;
-            height: 300px;
-            border-radius: 50%;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.1);
+            filter: grayscale(20%) contrast(1.2);
+            transition: 0.5s;
+            position: relative;
+            z-index: 2;
         }
 
-        .cta-group {
+        .avatar-wrapper:hover .profile-img {
+            filter: grayscale(0%) contrast(1);
+        }
+
+        /* Rotating Tech Ring */
+        .tech-ring {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border-radius: 50%;
+            border: 2px dashed var(--primary);
+            animation: spin 10s linear infinite;
+            opacity: 0.6;
+            z-index: 1;
+        }
+        
+        .tech-ring-2 {
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+            border-radius: 50%;
+            border: 1px solid var(--secondary);
+            border-left-color: transparent;
+            border-right-color: transparent;
+            animation: spin-reverse 8s linear infinite;
+            opacity: 0.4;
+            z-index: 1;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes spin-reverse { 100% { transform: rotate(-360deg); } }
+
+        /* Glitch Text Name */
+        .glitch-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: white;
+            position: relative;
+            text-shadow: 2px 2px var(--secondary);
+            margin-bottom: 0.5rem;
+            letter-spacing: 2px;
+        }
+
+        .glitch-name::before, .glitch-name::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 16, 0.9); 
+        }
+
+        .glitch-name::before {
+            left: 2px;
+            text-shadow: -1px 0 #ff00c1;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 5s infinite linear alternate-reverse;
+        }
+
+        .glitch-name::after {
+            left: -2px;
+            text-shadow: -1px 0 #00fff9;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim2 5s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% { clip: rect(18px, 9999px, 81px, 0); }
+            20% { clip: rect(66px, 9999px, 14px, 0); }
+            40% { clip: rect(6px, 9999px, 83px, 0); }
+            60% { clip: rect(32px, 9999px, 5px, 0); }
+            80% { clip: rect(93px, 9999px, 43px, 0); }
+            100% { clip: rect(56px, 9999px, 21px, 0); }
+        }
+
+        @keyframes glitch-anim2 {
+            0% { clip: rect(65px, 9999px, 100px, 0); }
+            20% { clip: rect(4px, 9999px, 73px, 0); }
+            40% { clip: rect(94px, 9999px, 25px, 0); }
+            60% { clip: rect(5px, 9999px, 84px, 0); }
+            80% { clip: rect(25px, 9999px, 56px, 0); }
+            100% { clip: rect(89px, 9999px, 11px, 0); }
+        }
+
+        /* Subtitle */
+        .role {
+            color: var(--primary);
+            font-size: 1.1rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .role::after {
+            content: '_';
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* Social Icons */
+        .socials {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+
+        .social-btn {
+            color: rgba(255,255,255,0.6);
+            border: 1px solid rgba(255,255,255,0.2);
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
-            gap: 15px;
-            margin-top: 30px;
+            justify-content: center;
+            border-radius: 50%;
+            transition: 0.3s;
+            cursor: pointer;
+            text-decoration: none;
         }
 
+        .social-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+            transform: translateY(-2px);
+        }
+
+        /* HUD Decorations */
+        .hud-text {
+            position: absolute;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.3);
+            pointer-events: none;
+        }
+        .tr { top: 20px; right: 20px; text-align: right; }
+        .bl { bottom: 20px; left: 20px; }
+
+        /* Buttons */
         .btn-glow {
             display: inline-block;
             padding: 12px 35px;
             background: transparent;
-            border: 2px solid var(--accent-2);
+            border: 2px solid var(--primary);
             color: white;
             font-weight: bold;
             border-radius: 30px;
             cursor: pointer;
             transition: 0.4s;
             text-decoration: none;
+            margin: 0 10px;
         }
 
         .btn-glow:hover {
-            box-shadow: 0 0 20px var(--accent-2);
-        }
-
-        .social-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            border: 2px solid rgba(255,255,255,0.2);
-            transition: 0.3s;
-            background: rgba(255,255,255,0.05);
-            color: white;
-            text-decoration: none;
-        }
-
-        .social-icon:hover {
-            border-color: white;
-            background: white;
-            color: #0a0a0a;
-        }
-
-        #contact-btn {
-            position: relative;
-            padding: 12px 30px;
-            background: linear-gradient(45deg, var(--accent-1), var(--accent-2));
-            border: none;
-            border-radius: 25px;
-            color: white;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            text-decoration: none;
-            overflow: hidden;
-            transition: all 0.4s ease;
-            box-shadow: 0 4px 15px rgba(5, 117, 230, 0.3);
-            z-index: 1;
-        }
-
-        #contact-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s;
-            z-index: -1;
-        }
-
-        #contact-btn:hover {
+            box-shadow: 0 0 20px var(--primary);
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(5, 117, 230, 0.5);
-            animation: pulse 2s infinite;
         }
 
-        #contact-btn:hover::before {
-            left: 100%;
-        }
-
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 8px 25px rgba(5, 117, 230, 0.5);
-            }
-            50% {
-                box-shadow: 0 8px 30px rgba(0, 242, 96, 0.6);
-            }
-            100% {
-                box-shadow: 0 8px 25px rgba(5, 117, 230, 0.5);
-            }
-        }
-
-        #contact-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 4px 15px rgba(5, 117, 230, 0.3);
+        .typewriter {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 30px;
+            min-height: 1.5em;
+            font-family: 'Share Tech Mono', monospace;
         }
 
         @media (max-width: 900px) {
-            .hero {
-                flex-direction: column-reverse;
-                text-align: center;
-                padding-top: 100px;
+            .profile-card {
+                padding: 2rem;
+                margin: 20px;
             }
-            .hero h1 { font-size: 2.5rem; }
-            .profile-img {
-                width: 200px;
-                height: 200px;
-                margin-bottom: 20px;
+            .glitch-name { font-size: 2.5rem; }
+            .avatar-wrapper {
+                width: 120px;
+                height: 120px;
             }
-            .nav-links { display: none; }
         }
     </style>
 </head>
+
 <body>
 
-<nav>
-    <div class="logo">ZHENYUXIE.COM</div>
-    <div class="nav-links">
-        <a href="#" id="contact-btn">Contact Me</a>
-    </div>
-</nav>
+    <!-- CRT Scanline Effect -->
+    <div class="scanlines"></div>
 
-<section class="hero" id="home">
-    <div class="hero-content">
-        <h1>Gude，I am <br><span class="highlight">Zhenyu Xie</span></h1>
-        <div class="typewriter" id="typewriter"></div>
-        <div class="cta-group">
-            <a href="https://www.linkedin.com/in/zhenyu-xie/" class="btn-glow">Find Me</a>
-            <a href="http://echoflow.zhenyuxie.com" class="btn-glow" target="_blank">EchoFlow</a>
-            <a href="https://github.com/sheazuzu" class="social-icon" target="_blank" aria-label="GitHub">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.419-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
-            </a>
-        </div>
+    <!-- Background Canvas -->
+    <canvas id="background-canvas"></canvas>
+
+    <!-- Decorative HUD Text -->
+    <div class="hud-text tr">
+        SYSTEM: ONLINE<br>
+        SECURE CONNECTION
+    </div>
+    <div class="hud-text bl">
+        COORDS: 34.05, -118.24<br>
+        VER: 2.5.0
     </div>
 
-    <div class="hero-image-container">
-        <img src="profile.jpg" alt="Zhenyu Xie" class="profile-img" onerror="this.src='https://via.placeholder.com/300/0575e6/ffffff?text=Zhenyu+Xie';">
+    <!-- Main Content -->
+    <div class="card-container" id="card">
+        <main class="profile-card">
+            
+            <div class="avatar-wrapper">
+                <div class="tech-ring"></div>
+                <div class="tech-ring-2"></div>
+                <img src="profile.jpg" alt="Zhenyu Xie" class="profile-img" onerror="this.src='https://via.placeholder.com/300/00f3ff/050505?text=Zhenyu+Xie';">
+            </div>
+
+            <h1 class="glitch-name" data-text="ZHENYU XIE">ZHENYU XIE</h1>
+            
+            <p class="role">Cloud Solution Architect</p>
+
+            <div class="typewriter" id="typewriter"></div>
+
+            <div class="socials">
+                <a href="https://www.linkedin.com/in/zhenyu-xie/" class="social-btn" target="_blank">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                </a>
+                <a href="https://github.com/sheazuzu" class="social-btn" target="_blank">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                </a>
+                <a href="http://echoflow.zhenyuxie.com" class="social-btn" target="_blank">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                </a>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <a href="https://www.linkedin.com/in/zhenyu-xie/" class="btn-glow">Find Me</a>
+                <a href="#" class="btn-glow" id="contact-btn">Contact</a>
+            </div>
+
+        </main>
     </div>
-</section>
 
 <script>
+    // --- 1. Canvas Particle Network Animation ---
+    const canvas = document.getElementById('background-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let width, height;
+    let particles = [];
+    const particleCount = 70;
+    const connectionDistance = 150;
+    const mouseDistance = 200;
+
+    let mouse = { x: null, y: null };
+
+    // Resize handler
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Mouse tracker
+    window.addEventListener('mousemove', (e) => {
+        mouse.x = e.x;
+        mouse.y = e.y;
+        
+        // Call 3D Tilt function
+        handleTilt(e);
+    });
+
+    window.addEventListener('mouseout', () => {
+        mouse.x = null;
+        mouse.y = null;
+        
+        // Reset Tilt
+        resetTilt();
+    });
+
+    // Particle Class
+    class Particle {
+        constructor() {
+            this.x = Math.random() * width;
+            this.y = Math.random() * height;
+            this.vx = (Math.random() - 0.5) * 1.5;
+            this.vy = (Math.random() - 0.5) * 1.5;
+            this.size = Math.random() * 2 + 1;
+            this.color = '#00f3ff'; // Cyan
+        }
+
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+
+            // Bounce off edges
+            if (this.x < 0 || this.x > width) this.vx *= -1;
+            if (this.y < 0 || this.y > height) this.vy *= -1;
+
+            // Mouse interaction
+            if (mouse.x != null) {
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                
+                if (distance < mouseDistance) {
+                    const forceDirectionX = dx / distance;
+                    const forceDirectionY = dy / distance;
+                    const force = (mouseDistance - distance) / mouseDistance;
+                    const directionX = forceDirectionX * force * 2;
+                    const directionY = forceDirectionY * force * 2;
+                    
+                    this.vx -= directionX * 0.05;
+                    this.vy -= directionY * 0.05;
+                }
+            }
+        }
+
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+        }
+    }
+
+    // Initialize particles
+    for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+    }
+
+    // Animation Loop
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        
+        // Update and draw particles
+        particles.forEach(p => {
+            p.update();
+            p.draw();
+        });
+
+        // Draw connections
+        connectParticles();
+
+        requestAnimationFrame(animate);
+    }
+
+    function connectParticles() {
+        let opacityValue = 1;
+        for (let a = 0; a < particles.length; a++) {
+            for (let b = a; b < particles.length; b++) {
+                let dx = particles[a].x - particles[b].x;
+                let dy = particles[a].y - particles[b].y;
+                let distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < connectionDistance) {
+                    opacityValue = 1 - (distance / connectionDistance);
+                    ctx.strokeStyle = 'rgba(0, 243, 255,' + opacityValue * 0.2 + ')';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(particles[a].x, particles[a].y);
+                    ctx.lineTo(particles[b].x, particles[b].y);
+                    ctx.stroke();
+                }
+            }
+            
+            // Connect to mouse
+            if (mouse.x != null) {
+                let dx = particles[a].x - mouse.x;
+                let dy = particles[a].y - mouse.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                if (distance < connectionDistance) {
+                    ctx.strokeStyle = 'rgba(188, 19, 254,' + 0.3 + ')';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(particles[a].x, particles[a].y);
+                    ctx.lineTo(mouse.x, mouse.y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+
+    animate();
+
+    // --- 2. 3D Tilt Effect for Card ---
+    const card = document.getElementById('card');
+    
+    function handleTilt(e) {
+        if(!card) return;
+        
+        const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+        const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+        
+        // Limit the rotation
+        const clampX = Math.max(-15, Math.min(15, xAxis));
+        const clampY = Math.max(-15, Math.min(15, yAxis));
+
+        card.style.transform = `rotateY(${clampX}deg) rotateX(${clampY}deg)`;
+    }
+
+    function resetTilt() {
+        if(!card) return;
+        card.style.transform = `rotateY(0deg) rotateX(0deg)`;
+    }
+
+    // --- 3. Typewriter Effect ---
     const textElement = document.getElementById('typewriter');
     const phrases = ['Cloud Solution Architect', 'Technical Account Manager', 'Tencent'];
-    let phraseIndex = 0;
-    let charIndex = 0;
-    let isDeleting = false;
-    let typeSpeed = 100;
-
+    let phraseIndex = 0, charIndex = 0, isDeleting = false, typeSpeed = 100;
+    
     function type() {
-        const currentPhrase = phrases[phraseIndex];
-
+        const current = phrases[phraseIndex];
         if (isDeleting) {
-            textElement.textContent = currentPhrase.substring(0, charIndex - 1);
+            textElement.textContent = current.substring(0, charIndex - 1);
             charIndex--;
             typeSpeed = 50;
         } else {
-            textElement.textContent = currentPhrase.substring(0, charIndex + 1);
+            textElement.textContent = current.substring(0, charIndex + 1);
             charIndex++;
             typeSpeed = 150;
         }
-
-        if (!isDeleting && charIndex === currentPhrase.length) {
+        if (!isDeleting && charIndex === current.length) {
             isDeleting = true;
             typeSpeed = 2000;
         } else if (isDeleting && charIndex === 0) {
@@ -265,75 +537,54 @@
             phraseIndex = (phraseIndex + 1) % phrases.length;
             typeSpeed = 500;
         }
-
         setTimeout(type, typeSpeed);
     }
     document.addEventListener('DOMContentLoaded', type);
 
-    // Contact Me按钮点击事件
+    // --- 4. Contact Modal ---
     document.getElementById('contact-btn').addEventListener('click', function(e) {
         e.preventDefault();
-        
-        // 创建联系表单弹窗
         const modal = document.createElement('div');
         modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+            position:fixed;top:0;left:0;width:100%;height:100%;
+            background:rgba(0,0,0,0.8);display:flex;
+            justify-content:center;align-items:center;z-index:1000;
         `;
-        
-        const contactForm = document.createElement('div');
-        contactForm.style.cssText = `
-            background: var(--bg-color);
-            padding: 40px;
-            border-radius: 15px;
-            border: 2px solid var(--accent-2);
-            max-width: 500px;
-            width: 90%;
-            position: relative;
-            box-shadow: 0 0 50px rgba(5, 117, 230, 0.3);
+        const box = document.createElement('div');
+        box.style.cssText = `
+            background:rgba(10, 10, 16, 0.9);padding:40px;border-radius:15px;
+            border:2px solid var(--primary);max-width:500px;width:90%;
+            box-shadow:0 0 50px rgba(0, 243, 255, 0.3);position:relative;
+            backdrop-filter: blur(10px);
         `;
-        
-        contactForm.innerHTML = `
-            <h2 style="margin-bottom: 20px; text-align: center;">Contact Me</h2>
-            <form id="contact-form" style="display: flex; flex-direction: column; gap: 15px;">
-                <input type="text" placeholder="Your Name" required style="padding: 12px; border: 1px solid #333; border-radius: 5px; background: #111; color: white;">
-                <input type="email" placeholder="Your Email" required style="padding: 12px; border: 1px solid #333; border-radius: 5px; background: #111; color: white;">
-                <textarea placeholder="Your Message" rows="4" required style="padding: 12px; border: 1px solid #333; border-radius: 5px; background: #111; color: white; resize: vertical;"></textarea>
-                <button type="submit" style="padding: 12px; background: linear-gradient(45deg, var(--accent-1), var(--accent-2)); border: none; border-radius: 5px; color: white; font-weight: bold; cursor: pointer;">Send Message</button>
+        box.innerHTML = `
+            <h2 style="margin-bottom:20px;text-align:center;color:var(--primary);font-family:'Orbitron',sans-serif;">CONTACT TRANSMISSION</h2>
+            <form id="contact-form" style="display:flex;flex-direction:column;gap:15px;">
+                <input type="text" placeholder="IDENTITY" required style="padding:12px;background:#111;color:white;border:1px solid #333;border-radius:5px;font-family:'Share Tech Mono',monospace;">
+                <input type="email" placeholder="COMMUNICATION CHANNEL" required style="padding:12px;background:#111;color:white;border:1px solid #333;border-radius:5px;font-family:'Share Tech Mono',monospace;">
+                <textarea placeholder="MESSAGE CONTENT" required rows="4" style="padding:12px;background:#111;color:white;border:1px solid #333;border-radius:5px;resize:vertical;font-family:'Share Tech Mono',monospace;"></textarea>
+                <button type="submit" style="padding:12px;background:var(--primary);color:black;font-weight:bold;border:none;border-radius:5px;cursor:pointer;font-family:'Orbitron',sans-serif;">INITIATE TRANSMISSION</button>
             </form>
-            <button id="close-modal" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: white; font-size: 20px; cursor: pointer;">×</button>
+            <button id="close-modal" style="position:absolute;top:10px;right:10px;background:none;border:none;color:var(--primary);font-size:20px;cursor:pointer;font-family:'Share Tech Mono',monospace;">×</button>
         `;
-        
-        modal.appendChild(contactForm);
+        modal.appendChild(box);
         document.body.appendChild(modal);
-        
-        // 关闭弹窗
-        document.getElementById('close-modal').addEventListener('click', function() {
+
+        document.getElementById('close-modal').addEventListener('click', () => {
             document.body.removeChild(modal);
         });
-        
-        // 表单提交
-        document.getElementById('contact-form').addEventListener('submit', function(e) {
+
+        document.getElementById('contact-form').addEventListener('submit', e => {
             e.preventDefault();
-            alert('Message sent! I\'ll get back to you soon.');
+            alert('TRANSMISSION INITIATED. RESPONSE INCOMING.');
             document.body.removeChild(modal);
         });
-        
-        // 点击背景关闭
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                document.body.removeChild(modal);
-            }
+
+        modal.addEventListener('click', e => {
+            if (e.target === modal) document.body.removeChild(modal);
         });
     });
 </script>
+
 </body>
 </html>
