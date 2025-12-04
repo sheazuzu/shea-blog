@@ -1,48 +1,45 @@
+// 导入必要的依赖包
 const express = require('express');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
+// 创建Express应用实例
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 中间件
-app.use(cors());
-app.use(express.json());
+// 配置中间件
+app.use(cors()); // 允许跨域请求
+app.use(express.json()); // 解析JSON请求体
 app.use(express.static('public')); // 提供静态文件服务
 
-// SMTP邮件配置 - 支持现代身份验证
+// 配置SMTP邮件传输器
+// 支持Gmail、Outlook等主流邮件服务商
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.office365.com', // Hotmail/Outlook SMTP服务器
-    port: process.env.SMTP_PORT || 587,
-    secure: false, // TLS需要设置为false
-    requireTLS: true, // 要求TLS连接
+    host: process.env.SMTP_HOST || 'smtp.gmail.com', // SMTP服务器地址
+    port: process.env.SMTP_PORT || 587, // SMTP端口
+    secure: false, // 不使用SSL
+    requireTLS: true, // 要求TLS加密
     auth: {
-        user: process.env.SMTP_USER || 'sheazuzu@hotmail.com',
-        pass: process.env.SMTP_PASS // 密码从环境变量获取
+        user: process.env.SMTP_USER || 'sheaaazuzu@gmail.com', // 发件人邮箱
+        pass: process.env.SMTP_PASS // 应用专用密码
     },
-    tls: {
-        ciphers: 'TLSv1.2', // 使用更安全的TLS版本
-        rejectUnauthorized: false // 允许自签名证书
-    }
+    debug: true, // 启用调试模式
+    logger: true // 启用日志记录
 });
 
-// 根路径 - 返回前端页面
 app.get('/', (req, res) => {
     res.sendFile('index.html', { root: 'public' });
 });
 
-// 健康检查接口
 app.get('/health', (req, res) => {
-    res.json({ status: 'OK', message: 'Shea Blog后端服务运行正常' });
+    res.json({ status: 'OK', message: '服务运行正常' });
 });
 
-// 联系表单处理接口
 app.post('/contact', async (req, res) => {
     try {
         const { name, email, subject, message } = req.body;
         
-        // 验证必填字段
         if (!name || !email || !subject || !message) {
             return res.status(400).json({
                 success: false,
@@ -50,7 +47,6 @@ app.post('/contact', async (req, res) => {
             });
         }
         
-        // 验证邮箱格式
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             return res.status(400).json({
@@ -59,10 +55,9 @@ app.post('/contact', async (req, res) => {
             });
         }
         
-        // 邮件内容
         const mailOptions = {
-            from: process.env.SMTP_USER || 'sheazuzu@hotmail.com',
-            to: 'sheazuzu@hotmail.com', // 发送到您的邮箱
+            from: process.env.SMTP_USER || 'sheaaazuzu@gmail.com',
+            to: 'sheazuzu@hotmail.com',
             subject: `博客联系表单: ${subject}`,
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -76,46 +71,28 @@ app.post('/contact', async (req, res) => {
                             ${message.replace(/\n/g, '<br>')}
                         </div>
                     </div>
-                    <p style="color: #666; font-size: 12px; margin-top: 20px;">
-                        此邮件来自您的个人博客网站联系表单
-                    </p>
                 </div>
-            `,
-            text: `
-新的联系表单提交
-
-姓名: ${name}
-邮箱: ${email}
-主题: ${subject}
-消息:
-${message}
-
-此邮件来自您的个人博客网站联系表单
             `
         };
         
-        // 发送邮件
         const info = await transporter.sendMail(mailOptions);
         
         console.log('邮件发送成功:', info.messageId);
         
         res.json({
             success: true,
-            message: '消息发送成功！我会尽快回复您。',
-            messageId: info.messageId
+            message: '消息发送成功！我会尽快回复您。'
         });
         
     } catch (error) {
         console.error('邮件发送失败:', error);
-        
         res.status(500).json({
             success: false,
-            message: '消息发送失败，请稍后重试或直接发送邮件至 sheazuzu@hotmail.com'
+            message: '消息发送失败，请稍后重试'
         });
     }
 });
 
-// 测试SMTP连接
 app.get('/test-smtp', async (req, res) => {
     try {
         await transporter.verify();
@@ -124,6 +101,7 @@ app.get('/test-smtp', async (req, res) => {
             message: 'SMTP连接测试成功'
         });
     } catch (error) {
+        console.error('SMTP连接测试失败:', error.message);
         res.status(500).json({
             success: false,
             message: 'SMTP连接测试失败: ' + error.message
@@ -131,7 +109,6 @@ app.get('/test-smtp', async (req, res) => {
     }
 });
 
-// 错误处理中间件
 app.use((error, req, res, next) => {
     console.error('服务器错误:', error);
     res.status(500).json({
@@ -140,7 +117,6 @@ app.use((error, req, res, next) => {
     });
 });
 
-// 404处理
 app.use((req, res) => {
     res.status(404).json({
         success: false,
@@ -148,18 +124,9 @@ app.use((req, res) => {
     });
 });
 
-// 启动服务器
 app.listen(PORT, () => {
-    console.log(`🚀 Shea Blog后端服务启动成功`);
+    console.log(`🚀 Shea Blog服务启动成功`);
     console.log(`📍 服务地址: http://localhost:${PORT}`);
-    console.log(`📧 邮件接口: http://localhost:${PORT}/contact`);
-    console.log(`❤️  健康检查: http://localhost:${PORT}/health`);
-    
-    // 检查环境变量配置
-    if (!process.env.SMTP_PASS) {
-        console.warn('⚠️  警告: SMTP_PASS环境变量未设置，邮件发送功能可能无法正常工作');
-        console.log('💡 提示: 请创建.env文件并设置SMTP_PASS=您的邮箱密码');
-    }
 });
 
 module.exports = app;

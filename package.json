@@ -1,7 +1,7 @@
 {
-  "name": "shea-blog-backend",
+  "name": "shea-blog",
   "version": "1.0.0",
-  "description": "Shea Blog后端服务 - 处理联系表单邮件发送",
+  "description": "个人博客系统 - 包含前端展示和邮件联系功能",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -16,7 +16,7 @@
   "devDependencies": {
     "nodemon": "^3.0.1"
   },
-  "keywords": ["blog", "contact-form", "smtp", "email"],
+  "keywords": ["blog"],
   "author": "Zhenyu Xie",
   "license": "MIT"
 }

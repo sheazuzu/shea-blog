@@ -1,39 +1,5 @@
-### IntelliJ IDEA ###
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
-### Eclipse ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-
-### VS Code ###
-.vscode/
-
-### Mac OS ###
+node_modules/
+.env
 .DS_Store
-
-### Docker ###
-# Docker构建缓存和临时文件
-.docker/
-# Docker Compose的override文件
-docker-compose.override.yml
-# 本地开发环境的Docker Compose文件
-docker-compose.local.yml
-# Docker构建上下文缓存
+.vscode/
 .cache/

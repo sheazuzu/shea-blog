@@ -1,40 +1,14 @@
+# Docker Compose配置文件版本
 version: '3.8'
 
+# 定义服务
 services:
+  # 主应用服务
   shea-blog:
-    build: .
-    container_name: shea-blog-app
+    build: . # 从当前目录的Dockerfile构建镜像
+    container_name: shea-blog-app # 容器名称
     ports:
-      - "80:3000"
-    environment:
-      - NODE_ENV=production
-      # SMTP配置 - 从.env文件读取或设置默认值
-      - SMTP_HOST=${SMTP_HOST:-smtp.office365.com}
-      - SMTP_PORT=${SMTP_PORT:-587}
-      - SMTP_USER=${SMTP_USER:-sheazuzu@hotmail.com}
-      - SMTP_PASS=${SMTP_PASS:-}
-      - PORT=${PORT:-3000}
+      - "80:3000" # 端口映射：主机80端口 -> 容器3000端口
     env_file:
-      - .env  # 从.env文件加载环境变量
-    volumes:
-      # 开发模式下挂载源代码，生产环境建议移除
-      - ./src:/app/public
-      - ./server.js:/app/server.js
-      - ./package.json:/app/package.json
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-# 网络配置（可选）
-networks:
-  default:
-    name: shea-blog-network
-
-# 卷配置（可选）
-volumes:
-  shea-blog-data:
-    name: shea-blog-storage
+      - .env # 从.env文件加载环境变量
+    restart: unless-stopped # 自动重启策略（除非手动停止）
