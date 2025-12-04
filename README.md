@@ -4,9 +4,15 @@
 
 ## 快速开始
 
-### 1. 一键部署（推荐）
+### 1. 一键部署和测试（推荐）
 
-使用提供的部署脚本快速启动：
+使用提供的部署测试脚本快速启动并验证功能：
+```bash
+chmod +x deploy-test.sh
+./deploy-test.sh
+```
+
+或者使用原始部署脚本：
 ```bash
 chmod +x deploy.sh
 ./deploy.sh
@@ -67,3 +73,44 @@ shea-blog/
 - `GET /health` - 健康检查
 - `POST /contact` - 联系表单提交
 - `GET /test-smtp` - SMTP连接测试
+
+## 邮件发送功能
+
+### 配置SMTP
+
+1. 复制环境变量配置文件：
+```bash
+cp .env.example .env
+```
+
+2. 编辑 `.env` 文件，配置SMTP信息：
+```bash
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
+PORT=3000
+```
+
+### 测试邮件功能
+
+```bash
+# 测试SMTP连接和邮件发送
+npm run test-email
+
+# 快速测试SMTP连接
+npm run test-smtp
+```
+
+### 详细配置指南
+
+查看 [EMAIL_SETUP.md](EMAIL_SETUP.md) 获取详细的配置说明和故障排除指南。
+
+## 邮件功能特性
+
+- ✅ 实时传输日志显示
+- ✅ SMTP连接状态监控
+- ✅ 详细的错误诊断
+- ✅ 支持多种SMTP服务商
+- ✅ 自动重试机制
+- ✅ 性能监控和统计

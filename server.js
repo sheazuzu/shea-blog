@@ -33,7 +33,14 @@ app.get('/', (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-    res.json({ status: 'OK', message: '服务运行正常' });
+    res.json({ 
+        status: 'OK', 
+        message: '服务运行正常',
+        timestamp: new Date().toISOString(),
+        version: '2.5.0',
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || 'development'
+    });
 });
 
 app.post('/contact', async (req, res) => {
@@ -96,15 +103,31 @@ app.post('/contact', async (req, res) => {
 app.get('/test-smtp', async (req, res) => {
     try {
         await transporter.verify();
+        console.log('✅ SMTP连接测试成功 - 服务器:', process.env.SMTP_HOST || 'smtp.gmail.com');
         res.json({
             success: true,
-            message: 'SMTP连接测试成功'
+            message: 'SMTP连接测试成功',
+            server: process.env.SMTP_HOST || 'smtp.gmail.com',
+            port: process.env.SMTP_PORT || 587,
+            user: process.env.SMTP_USER || 'sheaaazuzu@gmail.com'
         });
     } catch (error) {
-        console.error('SMTP连接测试失败:', error.message);
+        console.error('❌ SMTP连接测试失败:', error.message);
+        console.error('SMTP配置检查:');
+        console.error('- 服务器:', process.env.SMTP_HOST || 'smtp.gmail.com');
+        console.error('- 端口:', process.env.SMTP_PORT || 587);
+        console.error('- 用户:', process.env.SMTP_USER || 'sheaaazuzu@gmail.com');
+        console.error('- 密码配置:', process.env.SMTP_PASS ? '已设置' : '未设置');
+        
         res.status(500).json({
             success: false,
-            message: 'SMTP连接测试失败: ' + error.message
+            message: 'SMTP连接测试失败: ' + error.message,
+            details: {
+                server: process.env.SMTP_HOST || 'smtp.gmail.com',
+                port: process.env.SMTP_PORT || 587,
+                user: process.env.SMTP_USER || 'sheaaazuzu@gmail.com',
+                error: error.message
+            }
         });
     }
 });

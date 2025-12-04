@@ -576,14 +576,164 @@
 
         document.getElementById('contact-form').addEventListener('submit', e => {
             e.preventDefault();
-            alert('TRANSMISSION INITIATED. RESPONSE INCOMING.');
-            document.body.removeChild(modal);
+            
+            const formData = new FormData(e.target);
+            const name = e.target.querySelector('input[type="text"]').value;
+            const email = e.target.querySelector('input[type="email"]').value;
+            const message = e.target.querySelector('textarea').value;
+            
+            // 添加日志记录
+            console.log('📧 Contact form submitted:', { name, email, message });
+            
+            // 显示发送状态
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'TRANSMITTING...';
+            submitBtn.disabled = true;
+            
+            // 发送邮件
+            sendContactEmail(name, email, message, submitBtn, originalText, modal);
         });
 
         modal.addEventListener('click', e => {
             if (e.target === modal) document.body.removeChild(modal);
         });
     });
+
+    // --- 5. Email Sending with Detailed Logging ---
+    async function sendContactEmail(name, email, message, submitBtn, originalText, modal) {
+        const logContainer = document.createElement('div');
+        logContainer.style.cssText = `
+            position: fixed; top: 20px; right: 20px; width: 400px; max-height: 300px; 
+            background: rgba(0, 0, 0, 0.9); border: 2px solid var(--primary); 
+            padding: 15px; border-radius: 8px; z-index: 1001; overflow-y: auto;
+            font-family: 'Share Tech Mono', monospace; font-size: 12px; color: white;
+        `;
+        logContainer.innerHTML = '<h4 style="color: var(--primary); margin-bottom: 10px;">📧 EMAIL TRANSMISSION LOG</h4><div id="log-content"></div>';
+        document.body.appendChild(logContainer);
+        
+        const log = (message, type = 'info') => {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.style.cssText = `margin: 5px 0; padding: 3px; border-left: 3px solid ${
+                type === 'error' ? '#ff4444' : type === 'success' ? '#00ff88' : '#00f3ff'
+            };`;
+            logEntry.innerHTML = `<span style="color: #888;">[${timestamp}]</span> ${message}`;
+            document.getElementById('log-content').appendChild(logEntry);
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        };
+        
+        try {
+            log('Starting email transmission process...', 'info');
+            log(`Sender: ${name} <${email}>`, 'info');
+            log(`Message length: ${message.length} characters`, 'info');
+            
+            // Test backend connection first
+            log('Testing backend connection...', 'info');
+            const healthResponse = await fetch('/health');
+            if (healthResponse.ok) {
+                const healthData = await healthResponse.json();
+                log(`✅ Backend connection established (v${healthData.version})`, 'success');
+                log(`Server uptime: ${Math.round(healthData.uptime)}s`, 'info');
+            } else {
+                throw new Error('Backend service unavailable');
+            }
+            
+            // Test SMTP connection
+            log('Testing SMTP connection...', 'info');
+            const smtpTestResponse = await fetch('/test-smtp');
+            if (smtpTestResponse.ok) {
+                const smtpResult = await smtpTestResponse.json();
+                log(`✅ SMTP connection: ${smtpResult.message}`, 'success');
+                log(`SMTP Server: ${smtpResult.server}:${smtpResult.port}`, 'info');
+                log(`SMTP User: ${smtpResult.user}`, 'info');
+            } else {
+                const smtpError = await smtpTestResponse.json();
+                log(`❌ SMTP connection failed: ${smtpError.message}`, 'error');
+                log(`Server: ${smtpError.details.server}:${smtpError.details.port}`, 'error');
+                log(`User: ${smtpError.details.user}`, 'error');
+                throw new Error(`SMTP connection failed: ${smtpError.message}`);
+            }
+            
+            // Prepare email data
+            const emailData = {
+                name: name,
+                email: email,
+                subject: `Contact from ${name} - Personal Website`,
+                message: message
+            };
+            
+            log('Email data prepared successfully', 'success');
+            log(`SMTP Server: smtp.gmail.com:587`, 'info');
+            log(`Authentication: OAuth2/TLS`, 'info');
+            
+            // Send email via backend API
+            log('Sending email via SMTP...', 'info');
+            const startTime = Date.now();
+            
+            const response = await fetch('/contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(emailData)
+            });
+            
+            const responseTime = Date.now() - startTime;
+            log(`API Response time: ${responseTime}ms`, 'info');
+            
+            if (response.ok) {
+                const result = await response.json();
+                log('✅ Email sent successfully!', 'success');
+                log(`SMTP Response: ${result.message}`, 'success');
+                log('Message queued for delivery', 'success');
+                
+                setTimeout(() => {
+                    alert('✅ TRANSMISSION SUCCESSFUL! RESPONSE INCOMING.');
+                    document.body.removeChild(modal);
+                    document.body.removeChild(logContainer);
+                }, 1000);
+            } else {
+                const errorData = await response.json();
+                log(`❌ SMTP Error: ${errorData.message}`, 'error');
+                
+                if (response.status === 400) {
+                    log('Validation error - check form data', 'error');
+                } else if (response.status === 500) {
+                    log('Server error - check backend logs', 'error');
+                    log('Possible causes: SMTP configuration, network issues', 'error');
+                }
+                
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                
+                setTimeout(() => {
+                    alert('❌ TRANSMISSION FAILED! Check console for detailed logs.');
+                    document.body.removeChild(logContainer);
+                }, 1000);
+            }
+            
+        } catch (error) {
+            log(`❌ Critical Error: ${error.message}`, 'error');
+            
+            if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+                log('Network connection failed - check backend server status', 'error');
+                log('Ensure backend is running on port 3000', 'error');
+                log('Check if Docker container is running', 'error');
+            }
+            
+            log('Stack trace available in browser console', 'error');
+            
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            
+            setTimeout(() => {
+                alert('❌ TRANSMISSION FAILED! Check console for detailed error logs.');
+                document.body.removeChild(logContainer);
+            }, 1000);
+        }
+    }
+
 </script>
 
 </body>

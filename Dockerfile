@@ -13,8 +13,11 @@ RUN npm install --production
 # 复制后端服务器代码
 COPY server.js .
 
-# 复制环境变量模板
-COPY .env.example .env
+# 复制邮件测试脚本
+COPY test-email.js .
+
+# 复制环境变量配置文件
+COPY .env .env
 
 # 复制前端静态文件到public目录
 COPY src/ ./public/
