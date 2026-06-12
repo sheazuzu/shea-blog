@@ -8,7 +8,7 @@
     "dev": "nodemon server.js",
     "test-email": "node test-email.js",
     "test-smtp": "node test-email.js",
-    "check": "node --check server.js && node --check test-email.js"
+    "check": "node --check server.js && node --check test-email.js && node --check src/server/app.js && node --check src/server/config.js && node --check src/server/routes/contact.js && node --check src/server/routes/health.js && node --check src/server/routes/smtp.js && node --check src/server/services/mailService.js && node --check src/server/middleware/rateLimiter.js && node --check src/server/utils/html.js"
   },
   "dependencies": {
     "express": "^4.18.2",

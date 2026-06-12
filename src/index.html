@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Zhenyu Xie personal website and contact page.">
     <title>Zhenyu Xie | FUTURE TECH</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -14,16 +16,25 @@
             --glass: rgba(255, 255, 255, 0.05);
         }
 
+        html {
+            min-height: 100%;
+            background-color: var(--bg);
+        }
+
         body {
             background-color: var(--bg);
             color: white;
             font-family: 'Share Tech Mono', monospace;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
             margin: 0;
-            height: 100vh;
+            min-height: 100vh;
+            min-height: 100svh;
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 24px;
+            box-sizing: border-box;
             perspective: 1000px;
         }
 
@@ -50,6 +61,8 @@
             position: fixed;
             top: 0;
             left: 0;
+            width: 100vw;
+            height: 100vh;
             z-index: -1;
         }
 
@@ -65,6 +78,8 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(0, 243, 255, 0.3);
             padding: 3rem 4rem;
+            width: min(100%, 640px);
+            box-sizing: border-box;
             border-radius: 4px;
             text-align: center;
             box-shadow: 0 0 30px rgba(0, 243, 255, 0.1), inset 0 0 20px rgba(0, 0, 0, 0.5);
@@ -266,11 +281,15 @@
             transition: 0.4s;
             text-decoration: none;
             margin: 0 10px;
+            font: inherit;
         }
 
-        .btn-glow:hover {
+        .btn-glow:hover,
+        .btn-glow:focus-visible,
+        .social-btn:focus-visible {
             box-shadow: 0 0 20px var(--primary);
             transform: translateY(-2px);
+            outline: none;
         }
 
         .typewriter {
@@ -281,15 +300,178 @@
             font-family: 'Share Tech Mono', monospace;
         }
 
+        .actions {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.82);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .modal-box {
+            background: rgba(10, 10, 16, 0.94);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            box-shadow: 0 0 50px rgba(0, 243, 255, 0.3);
+            backdrop-filter: blur(10px);
+            max-width: 500px;
+            width: min(100%, 500px);
+            max-height: min(720px, 92vh);
+            overflow-y: auto;
+            padding: 40px;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .modal-title {
+            margin: 0 0 20px;
+            text-align: center;
+            color: var(--primary);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4rem;
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .contact-field {
+            padding: 12px;
+            background: #111;
+            color: white;
+            border: 1px solid #333;
+            border-radius: 5px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .contact-field:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 243, 255, 0.16);
+        }
+
+        .contact-submit {
+            padding: 12px;
+            background: var(--primary);
+            color: black;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .contact-submit:disabled {
+            cursor: wait;
+            opacity: 0.7;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 36px;
+            height: 36px;
+            background: transparent;
+            border: none;
+            color: var(--primary);
+            font-size: 24px;
+            cursor: pointer;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .transmission-log {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: min(400px, calc(100vw - 40px));
+            max-height: min(300px, calc(100vh - 40px));
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid var(--primary);
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 1001;
+            overflow-y: auto;
+            box-sizing: border-box;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: white;
+        }
+
+        .transmission-log h4 {
+            color: var(--primary);
+            margin: 0 0 10px;
+        }
+
         @media (max-width: 900px) {
             .profile-card {
                 padding: 2rem;
-                margin: 20px;
             }
             .glitch-name { font-size: 2.5rem; }
             .avatar-wrapper {
                 width: 120px;
                 height: 120px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                align-items: flex-start;
+                padding: 18px 12px;
+            }
+
+            .profile-card {
+                padding: 1.75rem 1.25rem;
+                clip-path: polygon(8% 0, 100% 0, 100% 92%, 92% 100%, 0 100%, 0 8%);
+            }
+
+            .glitch-name {
+                font-size: 2rem;
+            }
+
+            .role {
+                font-size: 0.9rem;
+                letter-spacing: 2px;
+            }
+
+            .typewriter {
+                font-size: 1.1rem;
+            }
+
+            .hud-text {
+                display: none;
+            }
+
+            .modal-box {
+                padding: 32px 20px 24px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .glitch-name::before,
+            .glitch-name::after {
+                display: none;
             }
         }
     </style>
@@ -320,7 +502,7 @@
             <div class="avatar-wrapper">
                 <div class="tech-ring"></div>
                 <div class="tech-ring-2"></div>
-                <img src="profile.jpg" alt="Zhenyu Xie" class="profile-img" onerror="this.src='https://via.placeholder.com/300/00f3ff/050505?text=Zhenyu+Xie';">
+                <img src="profile.jpg" alt="Zhenyu Xie" class="profile-img" width="160" height="160" decoding="async" fetchpriority="high" onerror="this.src='https://via.placeholder.com/300/00f3ff/050505?text=Zhenyu+Xie';">
             </div>
 
             <h1 class="glitch-name" data-text="ZHENYU XIE">ZHENYU XIE</h1>
@@ -341,9 +523,9 @@
                 </a>
             </div>
 
-            <div style="margin-top: 2rem;">
+            <div class="actions">
                 <a href="https://www.linkedin.com/in/zhenyu-xie/" class="btn-glow" rel="noopener noreferrer">Find Me</a>
-                <a href="#" class="btn-glow" id="contact-btn">Contact</a>
+                <button type="button" class="btn-glow" id="contact-btn">Contact</button>
             </div>
 
         </main>
@@ -354,18 +536,24 @@
     const canvas = document.getElementById('background-canvas');
     const ctx = canvas.getContext('2d');
     
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let width, height;
     let particles = [];
-    const particleCount = 70;
+    const particleCount = prefersReducedMotion ? 0 : (window.innerWidth < 700 ? 35 : 70);
     const connectionDistance = 150;
     const mouseDistance = 200;
+    let animationFrameId;
 
     let mouse = { x: null, y: null };
 
     // Resize handler
     function resize() {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
+        const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = Math.floor(width * pixelRatio);
+        canvas.height = Math.floor(height * pixelRatio);
+        ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
     }
     window.addEventListener('resize', resize);
     resize();
@@ -451,7 +639,7 @@
         // Draw connections
         connectParticles();
 
-        requestAnimationFrame(animate);
+        animationFrameId = requestAnimationFrame(animate);
     }
 
     function connectParticles() {
@@ -490,13 +678,24 @@
         }
     }
 
-    animate();
+    if (!prefersReducedMotion) {
+        animate();
+    }
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+        } else if (!document.hidden && !animationFrameId && !prefersReducedMotion) {
+            animate();
+        }
+    });
 
     // --- 2. 3D Tilt Effect for Card ---
     const card = document.getElementById('card');
     
     function handleTilt(e) {
-        if(!card) return;
+        if(!card || prefersReducedMotion || window.innerWidth < 700) return;
         
         const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
         const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
@@ -545,41 +744,43 @@
     document.getElementById('contact-btn').addEventListener('click', function(e) {
         e.preventDefault();
         const modal = document.createElement('div');
-        modal.style.cssText = `
-            position:fixed;top:0;left:0;width:100%;height:100%;
-            background:rgba(0,0,0,0.8);display:flex;
-            justify-content:center;align-items:center;z-index:1000;
-        `;
+        modal.className = 'modal-overlay';
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+        modal.setAttribute('aria-labelledby', 'contact-title');
         const box = document.createElement('div');
-        box.style.cssText = `
-            background:rgba(10, 10, 16, 0.9);padding:40px;border-radius:15px;
-            border:2px solid var(--primary);max-width:500px;width:90%;
-            box-shadow:0 0 50px rgba(0, 243, 255, 0.3);position:relative;
-            backdrop-filter: blur(10px);
-        `;
+        box.className = 'modal-box';
         box.innerHTML = `
-            <h2 style="margin-bottom:20px;text-align:center;color:var(--primary);font-family:'Orbitron',sans-serif;">CONTACT TRANSMISSION</h2>
-            <form id="contact-form" style="display:flex;flex-direction:column;gap:15px;">
-                <input type="text" placeholder="IDENTITY" required style="padding:12px;background:#111;color:white;border:1px solid #333;border-radius:5px;font-family:'Share Tech Mono',monospace;">
-                <input type="email" placeholder="COMMUNICATION CHANNEL" required style="padding:12px;background:#111;color:white;border:1px solid #333;border-radius:5px;font-family:'Share Tech Mono',monospace;">
-                <textarea placeholder="MESSAGE CONTENT" required rows="4" style="padding:12px;background:#111;color:white;border:1px solid #333;border-radius:5px;resize:vertical;font-family:'Share Tech Mono',monospace;"></textarea>
-                <button type="submit" style="padding:12px;background:var(--primary);color:black;font-weight:bold;border:none;border-radius:5px;cursor:pointer;font-family:'Orbitron',sans-serif;">INITIATE TRANSMISSION</button>
+            <h2 id="contact-title" class="modal-title">CONTACT TRANSMISSION</h2>
+            <form id="contact-form" class="contact-form">
+                <input class="contact-field" type="text" name="name" placeholder="IDENTITY" autocomplete="name" maxlength="200" required>
+                <input class="contact-field" type="email" name="email" placeholder="COMMUNICATION CHANNEL" autocomplete="email" maxlength="200" required>
+                <textarea class="contact-field" name="message" placeholder="MESSAGE CONTENT" maxlength="5000" required rows="4"></textarea>
+                <button class="contact-submit" type="submit">INITIATE TRANSMISSION</button>
             </form>
-            <button id="close-modal" style="position:absolute;top:10px;right:10px;background:none;border:none;color:var(--primary);font-size:20px;cursor:pointer;font-family:'Share Tech Mono',monospace;">×</button>
+            <button id="close-modal" class="modal-close" type="button" aria-label="Close contact form">&times;</button>
         `;
         modal.appendChild(box);
         document.body.appendChild(modal);
+        box.querySelector('input[name="name"]').focus();
 
         document.getElementById('close-modal').addEventListener('click', () => {
             document.body.removeChild(modal);
         });
 
+        modal.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                document.body.removeChild(modal);
+            }
+        });
+
         document.getElementById('contact-form').addEventListener('submit', e => {
             e.preventDefault();
             
-            const name = e.target.querySelector('input[type="text"]').value;
-            const email = e.target.querySelector('input[type="email"]').value;
-            const message = e.target.querySelector('textarea').value;
+            const formData = new FormData(e.target);
+            const name = formData.get('name');
+            const email = formData.get('email');
+            const message = formData.get('message');
             
             // 添加日志记录
             console.log('📧 Contact form submitted:', { name, email, message });
@@ -602,12 +803,8 @@
     // --- 5. Email Sending with Detailed Logging ---
     async function sendContactEmail(name, email, message, submitBtn, originalText, modal) {
         const logContainer = document.createElement('div');
-        logContainer.style.cssText = `
-            position: fixed; top: 20px; right: 20px; width: 400px; max-height: 300px; 
-            background: rgba(0, 0, 0, 0.9); border: 2px solid var(--primary); 
-            padding: 15px; border-radius: 8px; z-index: 1001; overflow-y: auto;
-            font-family: 'Share Tech Mono', monospace; font-size: 12px; color: white;
-        `;
+        logContainer.className = 'transmission-log';
+        logContainer.setAttribute('role', 'status');
         logContainer.innerHTML = '<h4 style="color: var(--primary); margin-bottom: 10px;">EMAIL TRANSMISSION LOG</h4><div id="log-content"></div>';
         document.body.appendChild(logContainer);
         
@@ -640,24 +837,6 @@
                 log(`Server uptime: ${Math.round(healthData.uptime)}s`, 'info');
             } else {
                 throw new Error('Backend service unavailable');
-            }
-            
-            // Test SMTP connection
-            log('Testing SMTP connection...', 'info');
-            const smtpTestResponse = await fetch('/test-smtp');
-            if (smtpTestResponse.ok) {
-                const smtpResult = await smtpTestResponse.json();
-                log(`✅ SMTP connection: ${smtpResult.message}`, 'success');
-                log(`SMTP Server: ${smtpResult.server}:${smtpResult.port}`, 'info');
-                log(`SMTP User: ${smtpResult.user}`, 'info');
-            } else {
-                const smtpError = await smtpTestResponse.json();
-                log(`SMTP connection failed: ${smtpError.message}`, 'error');
-                if (smtpError.details) {
-                    log(`Server: ${smtpError.details.server}:${smtpError.details.port}`, 'error');
-                    log(`User: ${smtpError.details.user}`, 'error');
-                }
-                throw new Error(`SMTP connection failed: ${smtpError.message}`);
             }
             
             // Prepare email data

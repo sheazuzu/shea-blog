@@ -1,14 +1,10 @@
-# Docker Compose配置文件版本
 version: '3.8'
 
-# 定义服务
 services:
-  # 主应用服务
   shea-blog:
-    build: . # 从当前目录的Dockerfile构建镜像
-    container_name: shea-blog-app # 容器名称
+    build: .
     ports:
-      - "80:3000" # 端口映射：主机80端口 -> 容器3000端口
+      - "${HOST_PORT:-80}:3000"
     env_file:
-      - .env # 从.env文件加载环境变量
-    restart: unless-stopped # 自动重启策略（除非手动停止）
+      - .env
+    restart: unless-stopped

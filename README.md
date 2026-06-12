@@ -46,15 +46,33 @@ shea-blog/
 ├── docker-compose.yml      # Docker Compose 配置
 ├── .dockerignore           # Docker 构建忽略规则
 ├── package.json            # Node.js 项目配置
-├── server.js               # 后端服务器
+├── server.js               # 服务启动入口
 ├── test-email.js           # SMTP 配置测试脚本
 ├── deploy.sh               # 一键部署脚本
 ├── .env.example            # 环境变量配置模板
-├── src/                    # 前端源代码目录
+├── src/
 │   ├── index.html          # 主页面
-│   └── profile.jpg         # 个人头像
+│   ├── profile.jpg         # 个人头像
+│   └── server/             # 后端应用模块
+│       ├── app.js          # Express app factory
+│       ├── config.js       # 环境变量配置聚合
+│       ├── middleware/     # 通用中间件
+│       ├── routes/         # API 路由
+│       ├── services/       # 外部服务集成
+│       └── utils/          # 通用工具函数
 └── README.md               # 项目说明
 ```
+
+## 架构说明
+
+后端按职责拆分为可扩展模块：
+
+- `server.js` 只负责启动服务和优雅退出
+- `src/server/app.js` 负责组装 Express 应用、中间件、静态文件和路由
+- `src/server/routes/` 按接口域拆分，例如健康检查、联系表单、SMTP 测试
+- `src/server/services/` 封装邮件等外部服务，后续可替换为队列、第三方邮件 API 或 mock
+- `src/server/config.js` 集中读取环境变量，避免业务代码散落配置读取逻辑
+- `src/server/middleware/rateLimiter.js` 当前使用内存限流，单实例部署足够；多实例部署时可以替换为 Redis backed limiter
 
 ## 主要功能
 
