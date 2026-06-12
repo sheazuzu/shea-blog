@@ -1,96 +1,205 @@
-// 导入必要的依赖包
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-// 创建Express应用实例
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
+const packageInfo = require('./package.json');
 
-// 配置中间件
-app.use(cors()); // 允许跨域请求
-app.use(express.json()); // 解析JSON请求体
-app.use(express.static('public')); // 提供静态文件服务
+const STATIC_DIR = path.join(__dirname, 'src');
+const CONTACT_RECIPIENT = process.env.CONTACT_TO || process.env.SMTP_USER;
+const SMTP_PORT = Number(process.env.SMTP_PORT) || 587;
+const SMTP_SECURE = process.env.SMTP_SECURE === 'true' || SMTP_PORT === 465;
+const SMTP_DEBUG = process.env.SMTP_DEBUG === 'true';
+const MAX_FIELD_LENGTH = 200;
+const MAX_MESSAGE_LENGTH = 5000;
+const CONTACT_WINDOW_MS = Number(process.env.CONTACT_RATE_WINDOW_MS) || 15 * 60 * 1000;
+const CONTACT_MAX_REQUESTS = Number(process.env.CONTACT_RATE_MAX) || 5;
+const contactAttempts = new Map();
 
-// 配置SMTP邮件传输器
-// 支持Gmail、Outlook等主流邮件服务商
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com', // SMTP服务器地址
-    port: process.env.SMTP_PORT || 587, // SMTP端口
-    secure: false, // 不使用SSL
-    requireTLS: true, // 要求TLS加密
-    auth: {
-        user: process.env.SMTP_USER || 'sheaaazuzu@gmail.com', // 发件人邮箱
-        pass: process.env.SMTP_PASS // 应用专用密码
-    },
-    debug: true, // 启用调试模式
-    logger: true // 启用日志记录
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function normalizeField(value) {
+    if (typeof value !== 'string') {
+        return '';
+    }
+
+    return value.trim();
+}
+
+function maskEmail(email = '') {
+    const [name, domain] = email.split('@');
+    if (!name || !domain) {
+        return '';
+    }
+
+    return `${name.slice(0, 2)}***@${domain}`;
+}
+
+function getSmtpConfig() {
+    return {
+        host: process.env.SMTP_HOST,
+        port: SMTP_PORT,
+        secure: SMTP_SECURE,
+        requireTLS: !SMTP_SECURE,
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS
+        },
+        debug: SMTP_DEBUG,
+        logger: SMTP_DEBUG
+    };
+}
+
+function validateSmtpConfig() {
+    const missing = ['SMTP_HOST', 'SMTP_USER', 'SMTP_PASS'].filter((key) => !process.env[key]);
+
+    if (!CONTACT_RECIPIENT) {
+        missing.push('CONTACT_TO');
+    }
+
+    return missing;
+}
+
+function contactRateLimit(req, res, next) {
+    const now = Date.now();
+    const key = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const entry = contactAttempts.get(key) || { count: 0, resetAt: now + CONTACT_WINDOW_MS };
+
+    if (now > entry.resetAt) {
+        entry.count = 0;
+        entry.resetAt = now + CONTACT_WINDOW_MS;
+    }
+
+    entry.count += 1;
+    contactAttempts.set(key, entry);
+
+    if (entry.count > CONTACT_MAX_REQUESTS) {
+        return res.status(429).json({
+            success: false,
+            message: '请求过于频繁，请稍后再试'
+        });
+    }
+
+    next();
+}
+
+function buildTransporter() {
+    return nodemailer.createTransport(getSmtpConfig());
+}
+
+function validateContactPayload(body) {
+    const name = normalizeField(body.name);
+    const email = normalizeField(body.email);
+    const subject = normalizeField(body.subject);
+    const message = normalizeField(body.message, MAX_MESSAGE_LENGTH);
+
+    if (!name || !email || !subject || !message) {
+        return { error: '所有字段都是必填的' };
+    }
+
+    if (name.length > MAX_FIELD_LENGTH || email.length > MAX_FIELD_LENGTH || subject.length > MAX_FIELD_LENGTH) {
+        return { error: `姓名、邮箱和主题不能超过 ${MAX_FIELD_LENGTH} 个字符` };
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return { error: '邮箱格式不正确' };
+    }
+
+    if (message.length > MAX_MESSAGE_LENGTH) {
+        return { error: `消息长度不能超过 ${MAX_MESSAGE_LENGTH} 个字符` };
+    }
+
+    return { data: { name, email, subject, message } };
+}
+
+app.disable('x-powered-by');
+app.set('trust proxy', 1);
+
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Referrer-Policy', 'no-referrer-when-downgrade');
+    next();
 });
+app.use(cors({ origin: process.env.CORS_ORIGIN || false }));
+app.use(express.json({ limit: '32kb' }));
+app.use(express.static(STATIC_DIR));
 
 app.get('/', (req, res) => {
-    res.sendFile('index.html', { root: 'public' });
+    res.sendFile(path.join(STATIC_DIR, 'index.html'));
 });
 
 app.get('/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
+    res.json({
+        status: 'OK',
         message: '服务运行正常',
         timestamp: new Date().toISOString(),
-        version: '2.5.0',
+        version: packageInfo.version,
         uptime: process.uptime(),
         environment: process.env.NODE_ENV || 'development'
     });
 });
 
-app.post('/contact', async (req, res) => {
+app.post('/contact', contactRateLimit, async (req, res) => {
     try {
-        const { name, email, subject, message } = req.body;
-        
-        if (!name || !email || !subject || !message) {
+        const { data, error } = validateContactPayload(req.body || {});
+        if (error) {
             return res.status(400).json({
                 success: false,
-                message: '所有字段都是必填的'
+                message: error
             });
         }
-        
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return res.status(400).json({
+
+        const missingConfig = validateSmtpConfig();
+        if (missingConfig.length > 0) {
+            console.error('SMTP配置缺失:', missingConfig.join(', '));
+            return res.status(503).json({
                 success: false,
-                message: '邮箱格式不正确'
+                message: '邮件服务暂未配置，请稍后再试'
             });
         }
-        
+
+        const { name, email, subject, message } = data;
+        const transporter = buildTransporter();
         const mailOptions = {
-            from: process.env.SMTP_USER || 'sheaaazuzu@gmail.com',
-            to: 'sheazuzu@hotmail.com',
+            from: process.env.SMTP_USER,
+            to: CONTACT_RECIPIENT,
+            replyTo: email,
             subject: `博客联系表单: ${subject}`,
+            text: `姓名: ${name}\n邮箱: ${email}\n主题: ${subject}\n\n${message}`,
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                     <h2 style="color: #333;">新的联系表单提交</h2>
                     <div style="background: #f5f5f5; padding: 20px; border-radius: 5px;">
-                        <p><strong>姓名:</strong> ${name}</p>
-                        <p><strong>邮箱:</strong> ${email}</p>
-                        <p><strong>主题:</strong> ${subject}</p>
+                        <p><strong>姓名:</strong> ${escapeHtml(name)}</p>
+                        <p><strong>邮箱:</strong> ${escapeHtml(email)}</p>
+                        <p><strong>主题:</strong> ${escapeHtml(subject)}</p>
                         <p><strong>消息:</strong></p>
                         <div style="background: white; padding: 15px; border-left: 4px solid #0078d4; margin-top: 10px;">
-                            ${message.replace(/\n/g, '<br>')}
+                            ${escapeHtml(message).replace(/\n/g, '<br>')}
                         </div>
                     </div>
                 </div>
             `
         };
-        
+
         const info = await transporter.sendMail(mailOptions);
-        
         console.log('邮件发送成功:', info.messageId);
-        
+
         res.json({
             success: true,
             message: '消息发送成功！我会尽快回复您。'
         });
-        
     } catch (error) {
         console.error('邮件发送失败:', error);
         res.status(500).json({
@@ -102,32 +211,29 @@ app.post('/contact', async (req, res) => {
 
 app.get('/test-smtp', async (req, res) => {
     try {
-        await transporter.verify();
-        console.log('✅ SMTP连接测试成功 - 服务器:', process.env.SMTP_HOST || 'smtp.gmail.com');
+        const missingConfig = validateSmtpConfig();
+        if (missingConfig.length > 0) {
+            return res.status(503).json({
+                success: false,
+                message: 'SMTP配置不完整',
+                missing: missingConfig
+            });
+        }
+
+        await buildTransporter().verify();
+        console.log('SMTP连接测试成功:', process.env.SMTP_HOST);
         res.json({
             success: true,
             message: 'SMTP连接测试成功',
-            server: process.env.SMTP_HOST || 'smtp.gmail.com',
-            port: process.env.SMTP_PORT || 587,
-            user: process.env.SMTP_USER || 'sheaaazuzu@gmail.com'
+            server: process.env.SMTP_HOST,
+            port: SMTP_PORT,
+            user: maskEmail(process.env.SMTP_USER)
         });
     } catch (error) {
-        console.error('❌ SMTP连接测试失败:', error.message);
-        console.error('SMTP配置检查:');
-        console.error('- 服务器:', process.env.SMTP_HOST || 'smtp.gmail.com');
-        console.error('- 端口:', process.env.SMTP_PORT || 587);
-        console.error('- 用户:', process.env.SMTP_USER || 'sheaaazuzu@gmail.com');
-        console.error('- 密码配置:', process.env.SMTP_PASS ? '已设置' : '未设置');
-        
+        console.error('SMTP连接测试失败:', error.message);
         res.status(500).json({
             success: false,
-            message: 'SMTP连接测试失败: ' + error.message,
-            details: {
-                server: process.env.SMTP_HOST || 'smtp.gmail.com',
-                port: process.env.SMTP_PORT || 587,
-                user: process.env.SMTP_USER || 'sheaaazuzu@gmail.com',
-                error: error.message
-            }
+            message: 'SMTP连接测试失败'
         });
     }
 });
@@ -147,9 +253,11 @@ app.use((req, res) => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Shea Blog服务启动成功`);
-    console.log(`📍 服务地址: http://localhost:${PORT}`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log('Shea Blog服务启动成功');
+        console.log(`服务地址: http://localhost:${PORT}`);
+    });
+}
 
 module.exports = app;

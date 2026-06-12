@@ -4,15 +4,9 @@
 
 ## 快速开始
 
-### 1. 一键部署和测试（推荐）
+### 1. 一键部署
 
-使用提供的部署测试脚本快速启动并验证功能：
-```bash
-chmod +x deploy-test.sh
-./deploy-test.sh
-```
-
-或者使用原始部署脚本：
+使用部署脚本快速构建并启动服务：
 ```bash
 chmod +x deploy.sh
 ./deploy.sh
@@ -31,6 +25,7 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your_email@gmail.com
 SMTP_PASS=your_app_password
+CONTACT_TO=your_destination_email@example.com
 PORT=3000
 ```
 
@@ -49,8 +44,10 @@ docker-compose up -d
 shea-blog/
 ├── Dockerfile              # Docker 构建文件
 ├── docker-compose.yml      # Docker Compose 配置
+├── .dockerignore           # Docker 构建忽略规则
 ├── package.json            # Node.js 项目配置
 ├── server.js               # 后端服务器
+├── test-email.js           # SMTP 配置测试脚本
 ├── deploy.sh               # 一键部署脚本
 ├── .env.example            # 环境变量配置模板
 ├── src/                    # 前端源代码目录
@@ -89,28 +86,25 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your_email@gmail.com
 SMTP_PASS=your_app_password
+CONTACT_TO=your_destination_email@example.com
 PORT=3000
 ```
 
 ### 测试邮件功能
 
 ```bash
-# 测试SMTP连接和邮件发送
+# 测试SMTP连接
 npm run test-email
 
-# 快速测试SMTP连接
+# 同上，保留兼容脚本名
 npm run test-smtp
 ```
 
-### 详细配置指南
-
-查看 [EMAIL_SETUP.md](EMAIL_SETUP.md) 获取详细的配置说明和故障排除指南。
-
 ## 邮件功能特性
 
-- ✅ 实时传输日志显示
-- ✅ SMTP连接状态监控
-- ✅ 详细的错误诊断
-- ✅ 支持多种SMTP服务商
-- ✅ 自动重试机制
-- ✅ 性能监控和统计
+- 实时传输日志显示
+- SMTP连接状态监控
+- 联系表单输入校验
+- 邮件内容HTML转义
+- 支持多种SMTP服务商
+- 联系表单轻量限流

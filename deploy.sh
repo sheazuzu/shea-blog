@@ -11,9 +11,13 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-# 检查docker-compose是否安装
-if ! command -v docker-compose &> /dev/null; then
-    echo "❌ docker-compose未安装，请先安装docker-compose"
+# 检查 Docker Compose 是否可用，兼容 v1 和 v2 命令
+if docker compose version &> /dev/null; then
+    COMPOSE_CMD="docker compose"
+elif command -v docker-compose &> /dev/null; then
+    COMPOSE_CMD="docker-compose"
+else
+    echo "❌ Docker Compose未安装，请先安装Docker Compose"
     exit 1
 fi
 
@@ -26,15 +30,15 @@ fi
 
 # 停止并删除现有容器
 echo "🔧 清理现有容器..."
-docker-compose down
+$COMPOSE_CMD down
 
 # 构建新镜像
 echo "🏗️  构建Docker镜像..."
-docker-compose build
+$COMPOSE_CMD build
 
 # 启动服务
 echo "🚀 启动服务..."
-docker-compose up -d
+$COMPOSE_CMD up -d
 
 # 等待服务启动
 echo "⏳ 等待服务启动..."
@@ -48,7 +52,7 @@ if curl -f http://localhost:80/health &> /dev/null; then
     echo "📧 邮件测试: http://localhost:80/test-smtp"
 else
     echo "❌ 服务启动失败，请检查日志"
-    echo "📋 查看日志: docker-compose logs"
+    echo "📋 查看日志: $COMPOSE_CMD logs"
 fi
 
 echo "🎉 部署完成！"
